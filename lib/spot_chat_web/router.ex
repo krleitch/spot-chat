@@ -3,10 +3,28 @@ defmodule SpotChatWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+    plug SpotChatWeb.Plugs.Auth
   end
+
+  # pipeline :browser do
+  #   plug SpotChatWeb.Plugs.Auth
+  #   # plug :put_user_token
+  # end
+
+  # defp put_user_token(conn, _) do
+  #   if current_user = conn.assigns[:current_user] do
+  #     token = Phoenix.Token.sign(conn, "user socket", current_user.id)
+  #     assign(conn, :user_token, token)
+  #   else
+  #     conn
+  #   end
+  # end
 
   scope "/api", SpotChatWeb do
     pipe_through :api
+
+    resources "/rooms/:userid", RoomController, only: [:index, :create]
+    post "/rooms/:id/join/:userid", RoomController, :join
   end
 
   # Enables LiveDashboard only for development
