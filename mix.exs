@@ -19,9 +19,8 @@ defmodule SpotChat.MixProject do
   # Type `mix help compile.app` for more information.
   def application do
     [
-      applications: [:httpoison],
       mod: {SpotChat.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :httpoison]
     ]
   end
 
@@ -45,7 +44,8 @@ defmodule SpotChat.MixProject do
       {:gettext, "~> 0.18"},
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
-      {:httpoison, "~> 1.8"}
+      {:httpoison, "~> 1.8"},
+      {:poison, "~> 5.0"}
     ]
   end
 

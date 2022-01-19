@@ -1,5 +1,6 @@
 defmodule SpotChatWeb.UserSocket do
   use Phoenix.Socket
+  use HTTPoison.Base
 
   channel "chat_room:*", SpotChatWeb.ChatRoomChannel
 
@@ -34,8 +35,19 @@ defmodule SpotChatWeb.UserSocket do
   # See `Phoenix.Token` documentation for examples in
   # performing token verification on connect.
   @impl true
-  def connect(_params, socket, _connect_info) do
-    {:ok, socket}
+  def connect(%{"token" => token}, socket, _connect_info) do
+    # get the user from server with the jwt
+    url = "http://localhost:3000/accounts"
+    headers = ["Authorization": "Bearer #{token}", "Accept": "Application/json; Charset=utf-8"]
+    case HTTPoison.get(url, headers) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+        user = Poison.decode!(body)
+        {:ok, assign(socket, :current_user, user["account"])}
+      {:ok, %HTTPoison.Response{status_code: 404}} ->
+        :error
+      {:error, %HTTPoison.Error{reason: _reason}} ->
+        :error
+    end
   end
 
   # Socket id's are topics that allow you to identify all sockets for a given user:

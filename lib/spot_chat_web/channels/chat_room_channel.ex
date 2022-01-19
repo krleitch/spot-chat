@@ -3,11 +3,17 @@ defmodule SpotChatWeb.ChatRoomChannel do
 
   @impl true
   def join("chat_room:lobby", payload, socket) do
+    IO.puts "TESTING ID " <> socket.assigns.current_user["id"]
     if authorized?(payload) do
       {:ok, socket}
     else
       {:error, %{reason: "unauthorized"}}
     end
+  end
+
+  # private rooms
+  def join("room:" <> _private_room_id, _params, _socket) do
+    {:error, %{reason: "unauthorized"}}
   end
 
   # Channels can be used in a request/response fashion
