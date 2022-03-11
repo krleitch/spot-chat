@@ -2,8 +2,8 @@ import Config
 
 # Configure your database
 config :spot_chat, SpotChat.Repo,
-  username: "root",
-  password: "admin",
+  username: "postgres",
+  password: "root",
   hostname: "localhost",
   database: "spot_chat_dev",
   show_sensitive_data_on_connection_error: true,
