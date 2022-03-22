@@ -1,13 +1,16 @@
 defmodule SpotChatWeb.SessionController do
   use SpotChatWeb, :controller
 
+  alias SpotChat.{SessionManager.Guardian}
+
   def create(conn, %{"token" => token} = params) do
     IO.puts('STARTED')
 
     case authenticate(params) do
       {:ok, _user} ->
-        new_conn = SpotChat.Guardian.Plug.sign_in(conn, token)
-        jwt = SpotChat.Guardian.Plug.current_token(new_conn)
+        new_conn = Guardian.Plug.sign_in(conn, token)
+        IO.puts('after')
+        jwt = Guardian.Plug.current_token(new_conn)
 
         new_conn
         |> put_status(:created)
@@ -21,9 +24,9 @@ defmodule SpotChatWeb.SessionController do
   end
 
   def refresh(conn, _params) do
-    jwt = SpotChat.Guardian.Plug.current_token(conn)
+    jwt = Guardian.Plug.current_token(conn)
 
-    case SpotChat.Guardian.refresh(jwt) do
+    case Guardian.refresh(jwt) do
       {:ok, new_jwt, _new_claims} ->
         conn
         |> put_status(:ok)

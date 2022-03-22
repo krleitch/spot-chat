@@ -48,5 +48,5 @@ config :logger, level: :info
 #
 # Check `Plug.SSL` for all available options in `force_ssl`.
 
-config :guardian, Guardian,
+config :spot_chat, SpotChat.SessionManager.Guardian,
   secret_key: System.get_env("GUARDIAN_SECRET_KEY")

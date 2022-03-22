@@ -59,5 +59,5 @@ config :phoenix, :stacktrace_depth, 20
 # Initialize plugs at runtime for faster development compilation
 config :phoenix, :plug_init_mode, :runtime
 
-config :guardian, Guardian,
+config :spot_chat, SpotChat.SessionManager.Guardian,
   secret_key: "FoDs9FIGZylzZtKaGt8RP6X5YqcZQOiua7rWTqGYfu+Bg6zN42RkLm9fjpDExtpB"

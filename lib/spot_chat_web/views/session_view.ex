@@ -1,4 +1,4 @@
-defmodule SpotChat.SessionView do
+defmodule SpotChatWeb.SessionView do
   use SpotChatWeb, :view
 
   def render("show.json", %{jwt: jwt}) do

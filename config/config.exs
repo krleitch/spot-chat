@@ -37,11 +37,10 @@ config :logger, :console,
 # Use Jason for JSON parsing in Phoenix
 config :phoenix, :json_library, Jason
 
-config :guardian, Guardian,
-  issuer: "SpotChat",
+config :spot_chat, SpotChat.SessionManager.Guardian,
+  issuer: "spot_chat",
   ttl: {30, :days},
-  verify_issuer: true,
-  serializer: SpotChat.GuardianSerializer
+  verify_issuer: true
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
