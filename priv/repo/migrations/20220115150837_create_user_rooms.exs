@@ -9,6 +9,7 @@ defmodule SpotChat.Repo.Migrations.CreateUserRooms do
       timestamps()
     end
 
+    create index(:user_rooms, [:user_id])
     create index(:user_rooms, [:room_id])
     create index(:user_rooms, [:user_id, :room_id], unique: true)
   end

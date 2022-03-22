@@ -42,6 +42,12 @@ defmodule SpotChatWeb.Endpoint do
     pass: ["*/*"],
     json_decoder: Phoenix.json_library()
 
+  # Cors
+  plug Corsica,
+    origins: "http://localhost:4200",
+    allow_headers: ["accept", "content-type", "authorization"],
+    allow_credentails: true
+
   plug Plug.MethodOverride
   plug Plug.Head
   plug Plug.Session, @session_options

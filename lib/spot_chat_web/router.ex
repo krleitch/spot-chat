@@ -3,13 +3,23 @@ defmodule SpotChatWeb.Router do
 
   pipeline :api do
     plug :accepts, ["json"]
+
+    # authenticate
+    plug Guardian.Plug.Pipeline, module: SpotChat.Guardian, error_handler: SpotChat.AuthErrorHandler
+    plug Guardian.Plug.VerifyHeader, scheme: 'Bearer'
+    plug Guardian.Plug.LoadResource, allow_blank: true
   end
 
   scope "/api", SpotChatWeb do
     pipe_through :api
 
-    # resources "/rooms/:userid", RoomController, only: [:index, :create]
-    # post "/rooms/:id/join/:userid", RoomController, :join
+    # Sessions
+    post "/sessions", SessionController, :create
+    post "/sessions/refresh", SessionController, :refresh
+
+    # Rooms
+    resources "/rooms", RoomController, only: [:index, :create]
+    post "/rooms/:id/join", RoomController, :join
   end
 
   # Enables LiveDashboard only for development

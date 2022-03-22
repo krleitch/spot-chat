@@ -37,12 +37,12 @@ defmodule SpotChatWeb.UserSocket do
   @impl true
   def connect(%{"token" => token}, socket, _connect_info) do
     # get the user from server with the jwt
-    url = "http://localhost:3000/accounts"
+    url = "http://localhost:3000/user"
     headers = ["Authorization": "Bearer #{token}", "Accept": "Application/json; Charset=utf-8"]
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         user = Poison.decode!(body)
-        {:ok, assign(socket, :current_user, user["account"])}
+        {:ok, assign(socket, :current_user, user["user"])}
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         :error
       {:error, %HTTPoison.Error{reason: _reason}} ->
