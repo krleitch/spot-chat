@@ -21,7 +21,6 @@ defmodule SpotChat.SessionManager.Guardian do
     # the resource id so here we'll rely on that to look it up.
     url = "http://localhost:3000/user"
     headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
-    IO.puts('getting resource')
 
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->

@@ -9,7 +9,8 @@ defmodule SpotChatWeb.RoomController do
     render(conn, "index.json", rooms: rooms)
   end
 
-  def create(_conn,  _params) do
+  def create(conn, _params) do
+    IO.puts("TESTING ID " <> conn.assigns.current_user["username"])
     # {:ok, conn}
 
     # current_user = %{}

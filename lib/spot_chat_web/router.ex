@@ -1,11 +1,16 @@
 defmodule SpotChatWeb.Router do
   use SpotChatWeb, :router
 
+  # Use Guardian Auth or Token Auth
   pipeline :auth do
+    plug SpotChat.SessionManager.AuthPlug
+  end
+
+  pipeline :guardian_auth do
     plug SpotChat.SessionManager.Pipeline
   end
 
-  pipeline :ensure_auth do
+  pipeline :guardian_ensure_auth do
     plug Guardian.Plug.EnsureAuthenticated
   end
 
@@ -13,18 +18,18 @@ defmodule SpotChatWeb.Router do
     plug :accepts, ["json"]
   end
 
-  # Maybe logged in scope
-  scope "/api", SpotChatWeb do
-    pipe_through [:api, :auth]
-
+  # No Auth, Use with guardian
+  # scope "/api", SpotChatWeb do
+    # pipe_through [:api]
     # Sessions
-    post "/sessions", SessionController, :create
-    post "/sessions/refresh", SessionController, :refresh
-  end
+    # post "/sessions", SessionController, :create
+    # post "/sessions/refresh", SessionController, :refresh
+  # end
 
   # Definitely logged in scope
   scope "/api", SpotChatWeb do
-    pipe_through [:api, :auth, :ensure_auth]
+    # pipe_through [:api, :guardian_auth, :guardian_ensure_auth]
+    pipe_through [:api, :auth, :authenticate_api_user]
 
     # Rooms
     resources "/rooms", RoomController, only: [:index, :create]

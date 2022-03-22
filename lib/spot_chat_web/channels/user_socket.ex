@@ -43,7 +43,7 @@ defmodule SpotChatWeb.UserSocket do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         user = Poison.decode!(body)
         {:ok, assign(socket, :current_user, user["user"])}
-      {:ok, %HTTPoison.Response{status_code: 404}} ->
+      {:ok, %HTTPoison.Response{status_code: 401}} ->
         :error
       {:error, %HTTPoison.Error{reason: _reason}} ->
         :error
