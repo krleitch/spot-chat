@@ -48,7 +48,8 @@ defmodule SpotChat.MixProject do
       {:poison, "~> 5.0"},
       {:guardian, "~> 2.0"},
       {:guardian_phoenix, "~> 2.0"},
-      {:corsica, "~> 1.0"}
+      {:corsica, "~> 1.0"},
+      {:scrivener_ecto, "~> 2.0"}
     ]
   end
 

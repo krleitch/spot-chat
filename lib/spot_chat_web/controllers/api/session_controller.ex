@@ -40,7 +40,7 @@ defmodule SpotChatWeb.SessionController do
   end
 
   def authenticate(%{"token" => token}) do
-    url = "http://localhost:3000/user"
+    url = "http://localhost:3000/chat/user"
     headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
 
     case HTTPoison.get(url, headers) do

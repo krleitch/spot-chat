@@ -1,56 +1,68 @@
 defmodule SpotChatWeb.RoomController do
   use SpotChatWeb, :controller
 
-  alias SpotChat.Repo
-  alias SpotChat.Room
+  import Ecto.Query
 
-  def index(conn, _params) do
-    rooms = Repo.all(Room)
-    render(conn, "index.json", rooms: rooms)
+  alias SpotChat.{Room, Repo}
+
+  def index(conn, params) do
+    page =
+      SpotChat.Room
+      |> order_by([asc: :id])
+      |> SpotChat.Repo.paginate(params)
+
+    conn
+    |> put_status(:ok)
+    |> render("index.json", page: page)
   end
 
-  def create(conn, _params) do
-    IO.puts("TESTING ID " <> conn.assigns.current_user["username"])
-    # {:ok, conn}
+  def create(conn, params) do
+    current_user = conn.assigns.current_user
+    changeset = Room.changeset(%Room{}, params)
 
-    # current_user = %{}
-    # changeset = Room.changeset(%Room{}, params)
+    case Repo.insert(changeset) do
+      {:ok, room} ->
+        assoc_changeset =
+          SpotChat.UserRoom.changeset(
+            %SpotChat.UserRoom{},
+            %{user_id: current_user.userId, room_id: room.id}
+          )
 
-    # case Repo.insert(changeset) do
-    #   {:ok, room} ->
-    #     assoc_changeset = SpotChat.UserRoom.changeset(
-    #       %SpotChat.UserRoom{},
-    #       %{user_id: user_id, room_id: room.id}
-    #     )
-    #     Repo.insert(assoc_changeset)
+        Repo.insert(assoc_changeset)
 
-    #     conn
-    #     |> put_status(:created)
-    #     |> render("show.json", room: room)
-    #   {:error, changeset} ->
-    #     conn
-    #     |> put_status(:unprocessable_entity)
-    #     |> render(SpotChat.ChangesetView, "error.json", changeset: changeset)
-    # end
+        conn
+        |> put_status(:created)
+        |> render("show.json", room: room)
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(SpotChatWeb.ChangesetView)
+        |> render("error.json", changeset: changeset)
+    end
   end
 
-  def join(_conn, %{"id" => _room_id}) do
-    # room = Repo.get(Room, room_id)
+  def join(conn, %{"id" => room_id}) do
+    current_user = conn.assigns.current_user
+    room = Repo.get(Room, room_id)
 
-    # changeset = SpotChat.UserRoom.changeset(
-    #   %SpotChat.UserRoom{},
-    #   %{room_id: room.id, user_id: user_id}
-    # )
+    changeset =
+      SpotChat.UserRoom.changeset(
+        %SpotChat.UserRoom{},
+        %{room_id: room.id, user_id: current_user.userId}
+      )
 
-    # case Repo.insert(changeset) do
-    #   {:ok, _user_room} ->
-    #     conn
-    #     |> put_status(:created)
-    #     |> render("show.json", %{room: room})
-    #   {:error, changeset} ->
-    #     conn
-    #     |> put_status(:unprocessable_entity)
-    #     |> render(SpotChat.ChangesetView, "error.json", changeset: changeset)
-    # end
+    case Repo.insert(changeset) do
+      {:ok, _user_room} ->
+        conn
+        |> put_status(:created)
+        |> render("show.json", %{room: room})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(SpotChatWeb.ChangesetView)
+        |> render("error.json", changeset: changeset)
+    end
   end
 end

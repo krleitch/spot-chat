@@ -27,10 +27,8 @@ defmodule SpotChat.SessionManager.AuthPlug do
   end
 
   def verify_token(token) do
-    url = "http://localhost:3000/user"
+    url = "http://localhost:3000/chat/user"
     headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
-    IO.puts('MEEEE')
-    IO.puts(token)
 
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
