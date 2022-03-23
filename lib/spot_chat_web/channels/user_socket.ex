@@ -50,6 +50,9 @@ defmodule SpotChatWeb.UserSocket do
     end
   end
 
+  @impl true
+  def connect(_params, _socket), do: :error
+
   # Socket id's are topics that allow you to identify all sockets for a given user:
   #
   #     def id(socket), do: "user_socket:#{socket.assigns.user_id}"
@@ -61,5 +64,5 @@ defmodule SpotChatWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(_socket), do: nil
+  def id(socket), do: "users_socket:#{socket.assigns.current_user.userId}"
 end

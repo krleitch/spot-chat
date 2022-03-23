@@ -5,6 +5,7 @@ defmodule SpotChat.Room do
   schema "rooms" do
     field :name, :string
     field :topic, :string
+    has_many :messages, SpotChat.Message
 
     timestamps()
   end
