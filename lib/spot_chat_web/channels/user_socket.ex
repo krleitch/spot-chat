@@ -64,5 +64,5 @@ defmodule SpotChatWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(socket), do: "users_socket:#{socket.assigns.current_user.userId}"
+  def id(socket), do: "users_socket:#{socket.assigns.current_user["userId"]}"
 end

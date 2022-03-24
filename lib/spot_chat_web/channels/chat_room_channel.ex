@@ -54,7 +54,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
   def handle_in("new_message", payload, socket) do
     changeset =
       socket.assigns.room
-      |> build_assoc(:messages, user_id: socket.assigns.current_user.userId)
+      |> Ecto.build_assoc(:messages, user_id: socket.assigns.current_user["userId"])
       |> Message.changeset(payload)
 
     case Repo.insert(changeset) do
@@ -76,7 +76,8 @@ defmodule SpotChatWeb.ChatRoomChannel do
   end
 
   defp broadcast_message(socket, message) do
-    message = Repo.preload(message)
+    # message = Repo.preload(message, :user)
+    # get user info, and choose what to include
     rendered_message = Phoenix.View.render_one(message, SpotChatWeb.MessageView, "message.json")
     broadcast!(socket, "message_created", rendered_message)
   end
