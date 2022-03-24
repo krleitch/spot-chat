@@ -8,7 +8,7 @@ defmodule SpotChatWeb.RoomController do
   def index(conn, params) do
     page =
       SpotChat.Room
-      |> order_by([asc: :id])
+      |> order_by(asc: :id)
       |> SpotChat.Repo.paginate(params)
 
     conn
@@ -33,6 +33,24 @@ defmodule SpotChatWeb.RoomController do
         conn
         |> put_status(:created)
         |> render("show.json", room: room)
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(SpotChatWeb.ChangesetView)
+        |> render("error.json", changeset: changeset)
+    end
+  end
+
+  def update(conn, params) do
+    room = Repo.get!(Room, params["id"])
+    changeset = Room.changeset(room, params)
+
+    case Repo.update(changeset) do
+      {:ok, room} ->
+        conn
+        |> put_status(:ok)
+        |> render("show.json", %{room: room})
 
       {:error, changeset} ->
         conn

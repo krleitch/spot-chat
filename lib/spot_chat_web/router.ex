@@ -20,10 +20,10 @@ defmodule SpotChatWeb.Router do
 
   # No Auth, Use with guardian
   # scope "/api", SpotChatWeb do
-    # pipe_through [:api]
-    # Sessions
-    # post "/sessions", SessionController, :create
-    # post "/sessions/refresh", SessionController, :refresh
+  # pipe_through [:api]
+  # Sessions
+  # post "/sessions", SessionController, :create
+  # post "/sessions/refresh", SessionController, :refresh
   # end
 
   # Definitely logged in scope
@@ -32,8 +32,15 @@ defmodule SpotChatWeb.Router do
     pipe_through [:api, :auth, :authenticate_api_user]
 
     # Rooms
-    resources "/rooms", RoomController, only: [:index, :create]
+    resources "/rooms", RoomController, only: [:index, :create, :update] do
+      resources "/messages", MessageController, only: [:index]
+    end
+
     post "/rooms/:id/join", RoomController, :join
+  end
+
+  scope "/", SpotChatWeb do
+    get "/*path", ApplicationController, :not_found
   end
 
   # Enables LiveDashboard only for development
@@ -43,25 +50,25 @@ defmodule SpotChatWeb.Router do
   # If your application does not have an admins-only section yet,
   # you can use Plug.BasicAuth to set up some basic authentication
   # as long as you are also using SSL (which you should anyway).
-  if Mix.env() in [:dev, :test] do
-    import Phoenix.LiveDashboard.Router
+  # if Mix.env() in [:dev, :test] do
+  #   import Phoenix.LiveDashboard.Router
 
-    scope "/" do
-      pipe_through [:fetch_session, :protect_from_forgery]
+  #   scope "/" do
+  #     pipe_through [:fetch_session, :protect_from_forgery]
 
-      live_dashboard "/dashboard", metrics: SpotChatWeb.Telemetry
-    end
-  end
+  #     live_dashboard "/dashboard", metrics: SpotChatWeb.Telemetry
+  #   end
+  # end
 
   # Enables the Swoosh mailbox preview in development.
   #
   # Note that preview only shows emails that were sent by the same
   # node running the Phoenix server.
-  if Mix.env() == :dev do
-    scope "/dev" do
-      pipe_through [:fetch_session, :protect_from_forgery]
+  # if Mix.env() == :dev do
+  #   scope "/dev" do
+  #     pipe_through [:fetch_session, :protect_from_forgery]
 
-      forward "/mailbox", Plug.Swoosh.MailboxPreview
-    end
-  end
+  #     forward "/mailbox", Plug.Swoosh.MailboxPreview
+  #   end
+  # end
 end
