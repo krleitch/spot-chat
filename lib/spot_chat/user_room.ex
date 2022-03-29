@@ -2,6 +2,8 @@ defmodule SpotChat.UserRoom do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, Ecto.UUID, autogenerate: true}
+
   schema "user_rooms" do
     field :user_id, :string
     field :room_id, :id

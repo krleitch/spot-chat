@@ -2,6 +2,8 @@ defmodule SpotChat.Message do
   use Ecto.Schema
   import Ecto.Changeset
 
+  @primary_key {:id, Ecto.UUID, autogenerate: true}
+
   schema "messages" do
     field :text, :string
     field :user_id, :string

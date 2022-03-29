@@ -2,7 +2,8 @@ defmodule SpotChat.Repo.Migrations.CreateUserRooms do
   use Ecto.Migration
 
   def change do
-    create table(:user_rooms) do
+    create table(:user_rooms, primary_key: false) do
+      add :id, :uuid, primary_key: true, null: false
       add :user_id, :string, null: false
       add :room_id, references(:rooms, on_delete: :nothing), null: false
 
