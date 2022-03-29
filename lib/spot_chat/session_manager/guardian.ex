@@ -19,13 +19,14 @@ defmodule SpotChat.SessionManager.Guardian do
     # Here we'll look up our resource from the claims, the subject can be
     # found in the `"sub"` key. In above `subject_for_token/2` we returned
     # the resource id so here we'll rely on that to look it up.
-    url = "http://localhost:3000/user"
+    url = "http://localhost:3000/chat/user"
     headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
 
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        user = Poison.decode!(body)
-        {:ok, user["user"]}
+        response = Poison.decode!(body)
+        user = for {key, val} <- response["user"], into: %{}, do: {String.to_atom(key), val}
+        {:ok, user}
 
       {:ok, %HTTPoison.Response{status_code: 404}} ->
         {:error, :resource_not_found}

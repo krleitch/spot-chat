@@ -32,8 +32,9 @@ defmodule SpotChat.SessionManager.AuthPlug do
 
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        user = Poison.decode!(body)
-        {:ok, user["user"]}
+        response = Poison.decode!(body)
+        user = for {key, val} <- response["user"], into: %{}, do: {String.to_atom(key), val}
+        {:ok, user}
 
       {:ok, %HTTPoison.Response{status_code: 401}} ->
         {:error, :resource_not_found}

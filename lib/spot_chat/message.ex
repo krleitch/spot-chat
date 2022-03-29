@@ -4,10 +4,10 @@ defmodule SpotChat.Message do
 
   @primary_key {:id, Ecto.UUID, autogenerate: true}
 
-  schema "messages" do
+  schema "message" do
     field :text, :string
-    field :user_id, :string
-    belongs_to :room, SpotChat.Room
+    field :user_id, Ecto.UUID
+    belongs_to :room, SpotChat.Room, type: Ecto.UUID
 
     timestamps()
   end

@@ -7,7 +7,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
 
   @impl true
   def join("chat_room:" <> room_id, _payload, socket) do
-    # IO.puts "TESTING ID " <> socket.assigns.current_user["id"]
+    # IO.puts "TESTING ID " <> socket.assigns.current_user.userId
 
     room = Repo.get!(Room, room_id)
 
@@ -54,7 +54,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
   def handle_in("new_message", payload, socket) do
     changeset =
       socket.assigns.room
-      |> Ecto.build_assoc(:messages, user_id: socket.assigns.current_user["userId"])
+      |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
       |> Message.changeset(payload)
 
     case Repo.insert(changeset) do

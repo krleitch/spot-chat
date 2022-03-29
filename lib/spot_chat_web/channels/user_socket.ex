@@ -41,8 +41,9 @@ defmodule SpotChatWeb.UserSocket do
     headers = ["Authorization": "Bearer #{token}", "Accept": "Application/json; Charset=utf-8"]
     case HTTPoison.get(url, headers) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        user = Poison.decode!(body)
-        {:ok, assign(socket, :current_user, user["user"])}
+        response = Poison.decode!(body)
+        user = for {key, val} <- response["user"], into: %{}, do: {String.to_atom(key), val}
+        {:ok, assign(socket, :current_user, user)}
       {:ok, %HTTPoison.Response{status_code: 401}} ->
         :error
       {:error, %HTTPoison.Error{reason: _reason}} ->
@@ -64,5 +65,5 @@ defmodule SpotChatWeb.UserSocket do
   #
   # Returning `nil` makes this socket anonymous.
   @impl true
-  def id(socket), do: "users_socket:#{socket.assigns.current_user["userId"]}"
+  def id(socket), do: "users_socket:#{socket.assigns.current_user.userId}"
 end

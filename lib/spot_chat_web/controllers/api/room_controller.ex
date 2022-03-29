@@ -25,7 +25,7 @@ defmodule SpotChatWeb.RoomController do
         assoc_changeset =
           SpotChat.UserRoom.changeset(
             %SpotChat.UserRoom{},
-            %{user_id: current_user["userId"], room_id: room.id}
+            %{user_id: current_user.userId, room_id: room.id}
           )
 
         Repo.insert(assoc_changeset)
@@ -67,7 +67,7 @@ defmodule SpotChatWeb.RoomController do
     changeset =
       SpotChat.UserRoom.changeset(
         %SpotChat.UserRoom{},
-        %{room_id: room.id, user_id: current_user["userId"]}
+        %{room_id: room.id, user_id: current_user.userId}
       )
 
     case Repo.insert(changeset) do
