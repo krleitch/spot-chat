@@ -3,7 +3,7 @@ defmodule SpotChatWeb.RoomController do
 
   import Ecto.Query
 
-  alias SpotChat.{Room, Repo}
+  alias SpotChat.{Repo, Room, UserRoom}
 
   def index(conn, params) do
     page =
@@ -18,13 +18,24 @@ defmodule SpotChatWeb.RoomController do
 
   def create(conn, params) do
     current_user = conn.assigns.current_user
-    changeset = Room.changeset(%Room{}, params)
+
+    changeset =
+      Room.changeset(
+        %Room{},
+        %{
+          user_id: current_user.userId,
+          name: params["name"],
+          description: params["description"],
+          image_src: params["imageSrc"],
+          private: params["private"]
+        }
+      )
 
     case Repo.insert(changeset) do
       {:ok, room} ->
         assoc_changeset =
-          SpotChat.UserRoom.changeset(
-            %SpotChat.UserRoom{},
+          UserRoom.changeset(
+            %UserRoom{},
             %{user_id: current_user.userId, room_id: room.id}
           )
 
@@ -65,8 +76,8 @@ defmodule SpotChatWeb.RoomController do
     room = Repo.get(Room, room_id)
 
     changeset =
-      SpotChat.UserRoom.changeset(
-        %SpotChat.UserRoom{},
+      UserRoom.changeset(
+        %UserRoom{},
         %{room_id: room.id, user_id: current_user.userId}
       )
 

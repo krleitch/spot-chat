@@ -8,7 +8,7 @@ defmodule SpotChat.Repo.Migrations.CreateRoom do
       add :name, :string, null: false
       add :description, :string, default: ""
       add :image_src, :string
-      add :public, :boolean, null: false, default: true
+      add :private, :boolean, null: false, default: true
 
       timestamps()
     end
