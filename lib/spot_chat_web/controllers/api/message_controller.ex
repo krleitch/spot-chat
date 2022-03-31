@@ -4,6 +4,7 @@ defmodule SpotChatWeb.MessageController do
   import Ecto.Query
 
   def index(conn, params) do
+    current_user = conn.assigns.current_user
     before = params["before"] || 0
     room = SpotChat.Repo.get!(SpotChat.Room, params["room_id"])
 
@@ -17,6 +18,7 @@ defmodule SpotChatWeb.MessageController do
 
     render(conn, "index.json", %{
       messages: page.entries,
+      user_id: current_user.userId,
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)
     })
   end

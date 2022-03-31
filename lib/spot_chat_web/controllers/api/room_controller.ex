@@ -6,6 +6,8 @@ defmodule SpotChatWeb.RoomController do
   alias SpotChat.{Repo, Room, UserRoom}
 
   def index(conn, params) do
+    current_user = conn.assigns.current_user
+
     page =
       SpotChat.Room
       |> order_by(asc: :id)
@@ -13,7 +15,7 @@ defmodule SpotChatWeb.RoomController do
 
     conn
     |> put_status(:ok)
-    |> render("index.json", page: page)
+    |> render("index.json", %{page: page, user_id: current_user.userId})
   end
 
   def create(conn, params) do
@@ -43,7 +45,7 @@ defmodule SpotChatWeb.RoomController do
 
         conn
         |> put_status(:created)
-        |> render("show.json", room: room)
+        |> render("show.json", %{room: room, user_id: current_user.userId})
 
       {:error, changeset} ->
         conn
@@ -54,6 +56,7 @@ defmodule SpotChatWeb.RoomController do
   end
 
   def update(conn, params) do
+    current_user = conn.assigns.current_user
     room = Repo.get!(Room, params["id"])
     changeset = Room.changeset(room, params)
 
@@ -61,7 +64,7 @@ defmodule SpotChatWeb.RoomController do
       {:ok, room} ->
         conn
         |> put_status(:ok)
-        |> render("show.json", %{room: room})
+        |> render("show.json", %{room: room, user_id: current_user.userId})
 
       {:error, changeset} ->
         conn
@@ -85,7 +88,7 @@ defmodule SpotChatWeb.RoomController do
       {:ok, _user_room} ->
         conn
         |> put_status(:created)
-        |> render("show.json", %{room: room})
+        |> render("show.json", %{room: room, user_id: current_user.userId})
 
       {:error, changeset} ->
         conn

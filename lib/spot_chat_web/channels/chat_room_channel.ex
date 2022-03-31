@@ -7,8 +7,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
 
   @impl true
   def join("chat_room:" <> room_id, _payload, socket) do
-    # IO.puts "TESTING ID " <> socket.assigns.current_user.userId
-
+    current_user = socket.assigns.current_user
     room = Repo.get!(Room, room_id)
 
     page =
@@ -18,8 +17,20 @@ defmodule SpotChatWeb.ChatRoomChannel do
       |> Repo.paginate()
 
     response = %{
-      room: Phoenix.View.render_one(room, SpotChatWeb.RoomView, "room.json"),
-      messages: Phoenix.View.render_many(page.entries, SpotChatWeb.MessageView, "message.json"),
+      room:
+        Phoenix.View.render_one(
+          %{room: room, user_id: current_user.userId},
+          SpotChatWeb.RoomView,
+          "room.json"
+        ),
+      messages:
+        Enum.map(page.entries, fn message ->
+          Phoenix.View.render_one(
+            %{message: message, user_id: current_user.userId},
+            SpotChatWeb.MessageView,
+            "message.json"
+          )
+        end),
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)
     }
 
