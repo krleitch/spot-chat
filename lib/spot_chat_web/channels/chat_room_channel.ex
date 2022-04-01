@@ -26,7 +26,15 @@ defmodule SpotChatWeb.ChatRoomChannel do
       messages:
         Enum.map(page.entries, fn message ->
           Phoenix.View.render_one(
-            %{message: message, user_id: current_user.userId},
+            %{
+              message: message,
+              user_id: current_user.userId,
+              profile:
+                SpotChatWeb.ProfileHelpers.getProfile(%{
+                  message: message,
+                  user_id: current_user.userId
+                })
+            },
             SpotChatWeb.MessageView,
             "message.json"
           )
