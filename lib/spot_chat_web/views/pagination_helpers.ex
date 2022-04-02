@@ -1,10 +1,10 @@
 defmodule SpotChatWeb.PaginationHelpers do
   def pagination(page) do
     %{
-      pageNumber: page.page_number,
-      pageSize: page.page_size,
-      totalPages: page.total_pages,
-      totalEntries: page.total_entries
+      after: page.metadata.after,
+      before: page.metadata.before,
+      limit: page.metadata.limit,
+      total_count: page.metadata.total_count
     }
   end
 end

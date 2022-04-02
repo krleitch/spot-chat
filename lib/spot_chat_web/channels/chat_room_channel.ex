@@ -10,11 +10,15 @@ defmodule SpotChatWeb.ChatRoomChannel do
     current_user = socket.assigns.current_user
     room = Repo.get!(Room, room_id)
 
+    query =
+      from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
+
     page =
-      Message
-      |> where([m], m.room_id == ^room.id)
-      |> order_by(desc: :inserted_at, desc: :id)
-      |> Repo.paginate()
+      Repo.paginate(
+        query,
+        cursor_fields: [{:inserted_at, :desc}, {:id, :desc}],
+        limit: 25
+      )
 
     response = %{
       room:

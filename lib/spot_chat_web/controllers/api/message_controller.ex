@@ -1,20 +1,25 @@
 defmodule SpotChatWeb.MessageController do
   use SpotChatWeb, :controller
 
+  alias SpotChat.{Repo, Message, Room}
+
   import Ecto.Query
 
   def index(conn, params) do
     current_user = conn.assigns.current_user
-    before = params["before"] || 0
-    room = SpotChat.Repo.get!(SpotChat.Room, params["room_id"])
+    before = params["before"] || nil
+    room = Repo.get!(Room, params["room_id"])
+
+    query =
+      from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
 
     page =
-      SpotChat.Message
-      |> where([m], m.room_id == ^room.id)
-      |> where([m], m.id < ^before)
-      |> order_by(desc: :inserted_at, desc: :id)
-      |> preload(:user)
-      |> SpotChat.Repo.paginate()
+      Repo.paginate(
+        query,
+        before: before,
+        cursor_fields: [:inserted_at, :id],
+        limit: 25
+      )
 
     render(conn, "index.json", %{
       messages: page.entries,

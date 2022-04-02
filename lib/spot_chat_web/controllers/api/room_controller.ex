@@ -5,13 +5,16 @@ defmodule SpotChatWeb.RoomController do
 
   alias SpotChat.{Repo, Room, UserRoom}
 
-  def index(conn, params) do
+  def index(conn, _params) do
     current_user = conn.assigns.current_user
 
+    query = from(r in Room, order_by: [asc: :id])
     page =
-      SpotChat.Room
-      |> order_by(asc: :id)
-      |> SpotChat.Repo.paginate(params)
+      Repo.paginate(
+        query,
+        cursor_fields: [{:id, :asc}],
+        limit: 25
+      )
 
     conn
     |> put_status(:ok)

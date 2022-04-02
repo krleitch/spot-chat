@@ -49,7 +49,7 @@ defmodule SpotChat.MixProject do
       {:guardian, "~> 2.0"},
       {:guardian_phoenix, "~> 2.0"},
       {:corsica, "~> 1.0"},
-      {:scrivener_ecto, "~> 2.0"}
+      {:paginator, "~> 1.1.0"}
     ]
   end
 
