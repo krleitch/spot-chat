@@ -8,7 +8,7 @@ defmodule SpotChat.UserRoom do
     field :user_id, Ecto.UUID
     belongs_to :room, SpotChat.Room, type: Ecto.UUID
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false

@@ -42,6 +42,9 @@ config :spot_chat, SpotChat.SessionManager.Guardian,
   ttl: {30, :days},
   verify_issuer: true
 
+# Use timestamptz
+config :spot_chat, SpotChat.Repo, migration_timestamps: [type: :timestamptz]
+
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.
 import_config "#{config_env()}.exs"

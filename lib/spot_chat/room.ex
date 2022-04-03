@@ -12,7 +12,7 @@ defmodule SpotChat.Room do
     field :private, :boolean
     has_many :message, SpotChat.Message
 
-    timestamps()
+    timestamps(type: :utc_datetime)
   end
 
   @doc false
