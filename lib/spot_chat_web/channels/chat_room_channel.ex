@@ -36,8 +36,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
               profile:
                 SpotChatWeb.ProfileHelpers.getProfile(%{
                   room: room,
-                  message: message,
-                  user_id: current_user.userId
+                  message: message
                 })
             },
             SpotChatWeb.MessageView,
@@ -110,8 +109,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
           profile:
             SpotChatWeb.ProfileHelpers.getProfile(%{
               room: room,
-              message: message,
-              user_id: message.user_id
+              message: message
             })
         },
         SpotChatWeb.MessageView,
@@ -128,8 +126,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
           profile:
             SpotChatWeb.ProfileHelpers.getProfile(%{
               room: room,
-              message: message,
-              user_id: message.user_id
+              message: message
             })
         },
         SpotChatWeb.MessageView,

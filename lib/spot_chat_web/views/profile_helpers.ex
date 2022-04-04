@@ -1,10 +1,10 @@
 defmodule SpotChatWeb.ProfileHelpers do
 
 
-  def getProfile(%{room: room, message: message, user_id: user_id}) do
+  def getProfile(%{room: room, message: message}) do
     upperbound = 70
     lowerbound = 0
-    hash = :erlang.phash2(room.id <> user_id)
+    hash = :erlang.phash2(room.id <> message.user_id)
     index = rem(hash, upperbound - lowerbound) + lowerbound
     room_user_id = room.user_id
     case message.user_id do

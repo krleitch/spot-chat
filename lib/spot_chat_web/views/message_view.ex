@@ -15,7 +15,7 @@ defmodule SpotChatWeb.MessageView do
               message: message,
               owned: message.user_id == user_id,
               profile:
-                SpotChatWeb.ProfileHelpers.getProfile(%{room: room, message: message, user_id: user_id})
+                SpotChatWeb.ProfileHelpers.getProfile(%{room: room, message: message})
             },
             SpotChatWeb.MessageView,
             "message.json"
