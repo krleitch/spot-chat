@@ -32,9 +32,10 @@ defmodule SpotChatWeb.ChatRoomChannel do
           Phoenix.View.render_one(
             %{
               message: message,
-              user_id: current_user.userId,
+              owned: message.user_id == current_user.userId,
               profile:
                 SpotChatWeb.ProfileHelpers.getProfile(%{
+                  room: room,
                   message: message,
                   user_id: current_user.userId
                 })
@@ -99,9 +100,42 @@ defmodule SpotChatWeb.ChatRoomChannel do
   end
 
   defp broadcast_message(socket, message) do
-    # message = Repo.preload(message, :user)
+    room = Repo.get!(Room, message.room_id)
     # get user info, and choose what to include
-    rendered_message = Phoenix.View.render_one(message, SpotChatWeb.MessageView, "message.json")
-    broadcast!(socket, "message_created", rendered_message)
+    rendered_message_from =
+      Phoenix.View.render_one(
+        %{
+          message: message,
+          owned: false,
+          profile:
+            SpotChatWeb.ProfileHelpers.getProfile(%{
+              room: room,
+              message: message,
+              user_id: message.user_id
+            })
+        },
+        SpotChatWeb.MessageView,
+        "message.json"
+      )
+
+    broadcast_from!(socket, "message_created", rendered_message_from)
+
+    rendered_message_push =
+      Phoenix.View.render_one(
+        %{
+          message: message,
+          owned: true,
+          profile:
+            SpotChatWeb.ProfileHelpers.getProfile(%{
+              room: room,
+              message: message,
+              user_id: message.user_id
+            })
+        },
+        SpotChatWeb.MessageView,
+        "message.json"
+      )
+
+    push(socket, "message_created", rendered_message_push)
   end
 end

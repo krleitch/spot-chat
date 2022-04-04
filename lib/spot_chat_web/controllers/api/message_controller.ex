@@ -22,6 +22,7 @@ defmodule SpotChatWeb.MessageController do
       )
 
     render(conn, "index.json", %{
+      room: room,
       messages: page.entries,
       user_id: current_user.userId,
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)

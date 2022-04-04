@@ -1,13 +1,14 @@
 defmodule SpotChatWeb.ProfileHelpers do
 
 
-  def getProfile(%{message: message, user_id: user_id}) do
+  def getProfile(%{room: room, message: message, user_id: user_id}) do
     upperbound = 70
     lowerbound = 0
-    hash = :erlang.phash2(message.room_id <> user_id)
+    hash = :erlang.phash2(room.id <> user_id)
     index = rem(hash, upperbound - lowerbound) + lowerbound
+    room_user_id = room.user_id
     case message.user_id do
-      ^user_id ->
+      ^room_user_id ->
         %{
           profile_picture_num: -1,
           profile_picture_src: "op.png"
