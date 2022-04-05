@@ -28,21 +28,11 @@ defmodule SpotChatWeb.ChatRoomChannel do
           "room.json"
         ),
       messages:
-        Enum.map(page.entries, fn message ->
-          Phoenix.View.render_one(
-            %{
-              message: message,
-              owned: message.user_id == current_user.userId,
-              profile:
-                SpotChatWeb.ProfileHelpers.getProfile(%{
-                  room: room,
-                  message: message
-                })
-            },
-            SpotChatWeb.MessageView,
-            "message.json"
-          )
-        end),
+        Phoenix.View.render(
+          SpotChatWeb.MessageView,
+          "block.json",
+          %{room: room, messages: page.entries, user_id: current_user.userId}
+        ),
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)
     }
 
@@ -104,13 +94,9 @@ defmodule SpotChatWeb.ChatRoomChannel do
     rendered_message_from =
       Phoenix.View.render_one(
         %{
+          room: room,
           message: message,
           owned: false,
-          profile:
-            SpotChatWeb.ProfileHelpers.getProfile(%{
-              room: room,
-              message: message
-            })
         },
         SpotChatWeb.MessageView,
         "message.json"
@@ -121,13 +107,9 @@ defmodule SpotChatWeb.ChatRoomChannel do
     rendered_message_push =
       Phoenix.View.render_one(
         %{
+          room: room,
           message: message,
-          owned: true,
-          profile:
-            SpotChatWeb.ProfileHelpers.getProfile(%{
-              room: room,
-              message: message
-            })
+          owned: true
         },
         SpotChatWeb.MessageView,
         "message.json"

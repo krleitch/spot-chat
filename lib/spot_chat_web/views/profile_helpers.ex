@@ -1,18 +1,23 @@
 defmodule SpotChatWeb.ProfileHelpers do
-
-
   def getProfile(%{room: room, message: message}) do
     upperbound = 70
     lowerbound = 0
-    hash = :erlang.phash2(room.id <> message.user_id)
-    index = rem(hash, upperbound - lowerbound) + lowerbound
+
+    hash =
+      :crypto.hash(:sha256, room.id <> message.user_id)
+      |> Base.encode16()
+
+    {int_hash, _} = Integer.parse(hash, 16)
+    index = rem(int_hash, upperbound - lowerbound) + lowerbound
     room_user_id = room.user_id
+
     case message.user_id do
       ^room_user_id ->
         %{
           profile_picture_num: -1,
           profile_picture_src: "op.png"
         }
+
       _ ->
         %{
           profile_picture_num: rem(index, 25),
@@ -94,7 +99,7 @@ defmodule SpotChatWeb.ProfileHelpers do
       "icons8-wrap-48.png",
       "icons8-yogurt-48.png"
     ]
+
     Enum.at(urls, index)
   end
-
 end
