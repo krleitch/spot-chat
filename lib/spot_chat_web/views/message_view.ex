@@ -7,7 +7,7 @@ defmodule SpotChatWeb.MessageView do
     DateTime.diff(low, high) >= min
   end
 
-  def getChatProfileId(%{room: room, message: message}) do
+  defp getChatProfileId(%{room: room, message: message}) do
     :crypto.hash(:sha256, room.id <> message.user_id)
     |> Base.encode16()
   end
@@ -83,7 +83,8 @@ defmodule SpotChatWeb.MessageView do
             # add to last block
             {[
                %{
-                 insertedAt: block.insertedAt,
+                 # its the first message inserted at that the block has
+                 insertedAt: message.inserted_at,
                  profilePictureSrc: block.profilePictureSrc,
                  profilePictureNum: block.profilePictureNum,
                  owned: block.owned,
