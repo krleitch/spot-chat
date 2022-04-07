@@ -55,14 +55,15 @@ defmodule SpotChatWeb.MessageView do
                profilePictureNum: profile.profile_picture_num,
                owned: message.user_id == user_id,
                chatProfileId: getChatProfileId(%{room: room, message: message}),
+               showDate: true,
                messages: [%{id: message.id, text: message.text, insertedAt: message.inserted_at}]
              }
            ], message}
 
         # otherwise get the last block and see if we add to it or make a new block
         {[block | list] = blocks, last_message} ->
-          if message.user_id !== last_message.user_id ||
-               too_long(last_message.inserted_at, message.inserted_at) do
+          show_date = too_long(last_message.inserted_at, message.inserted_at)
+          if (message.user_id !== last_message.user_id || show_date) do
             # create a new block
             profile = SpotChatWeb.ProfileHelpers.getProfile(%{room: room, message: message})
 
@@ -73,6 +74,7 @@ defmodule SpotChatWeb.MessageView do
                  profilePictureNum: profile.profile_picture_num,
                  owned: message.user_id == user_id,
                  chatProfileId: getChatProfileId(%{room: room, message: message}),
+                 showDate: show_date,
                  messages: [
                    %{id: message.id, text: message.text, insertedAt: message.inserted_at}
                  ]
@@ -89,6 +91,7 @@ defmodule SpotChatWeb.MessageView do
                  profilePictureNum: block.profilePictureNum,
                  owned: block.owned,
                  chatProfileId: block.chatProfileId,
+                 showDate: block.showDate,
                  messages: [
                    %{id: message.id, text: message.text, insertedAt: message.inserted_at}
                    | block.messages
