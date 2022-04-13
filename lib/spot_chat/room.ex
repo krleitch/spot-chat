@@ -10,6 +10,7 @@ defmodule SpotChat.Room do
     field :description, :string
     field :image_src, :string
     field :private, :boolean
+    field :point, Geo.PostGIS.Geometry
     has_many :message, SpotChat.Message
 
     timestamps(type: :utc_datetime)
@@ -18,8 +19,8 @@ defmodule SpotChat.Room do
   @doc false
   def changeset(room, attrs) do
     room
-    |> cast(attrs, [:user_id, :name, :description, :image_src, :private])
-    |> validate_required([:user_id, :name, :description, :private])
+    |> cast(attrs, [:user_id, :name, :description, :image_src, :private, :point])
+    |> validate_required([:user_id, :name, :description, :private, :point])
     |> unique_constraint(:name)
   end
 end

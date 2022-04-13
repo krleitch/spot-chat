@@ -45,11 +45,12 @@ defmodule SpotChat.MixProject do
       {:jason, "~> 1.2"},
       {:plug_cowboy, "~> 2.5"},
       {:httpoison, "~> 1.8"},
-      {:poison, "~> 5.0"},
+      {:poison, "~> 4.0"},
       {:guardian, "~> 2.0"},
       {:guardian_phoenix, "~> 2.0"},
       {:corsica, "~> 1.0"},
-      {:paginator, "~> 1.1.0"}
+      {:paginator, "~> 1.1.0"},
+      {:geo_postgis, "~> 3.4"}
     ]
   end
 

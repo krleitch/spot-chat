@@ -32,7 +32,8 @@ defmodule SpotChatWeb.RoomController do
           name: params["name"],
           description: params["description"],
           image_src: params["imageSrc"],
-          private: params["private"]
+          private: params["private"],
+          point: %Geo.Point{coordinates: { params["lng"], params["lat"]}}
         }
       )
 
