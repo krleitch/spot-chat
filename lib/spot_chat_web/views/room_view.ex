@@ -21,7 +21,7 @@ defmodule SpotChatWeb.RoomView do
       name: room.name,
       description: room.description,
       imageSrc: room.image_src,
-      private: room.private,
+      private: room.password_hash !== nil,
       point: room.point,
       owned: room.user_id == user_id
     }

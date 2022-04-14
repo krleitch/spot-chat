@@ -25,14 +25,14 @@ defmodule SpotChatWeb.RoomController do
     current_user = conn.assigns.current_user
 
     changeset =
-      Room.changeset(
+      Room.registration_changeset(
         %Room{},
         %{
           user_id: current_user.userId,
           name: params["name"],
           description: params["description"],
           image_src: params["imageSrc"],
-          private: params["private"],
+          password: params["password"],
           point: %Geo.Point{coordinates: { params["lng"], params["lat"]}}
         }
       )

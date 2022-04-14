@@ -4,6 +4,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
   import Ecto.Query
 
   alias SpotChat.{Repo, Room, Message}
+  alias SpotChatWeb.Presence
 
   @impl true
   def join("chat_room:" <> room_id, _payload, socket) do
@@ -36,30 +37,24 @@ defmodule SpotChatWeb.ChatRoomChannel do
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)
     }
 
+    send(self(), :after_join)
     {:ok, response, assign(socket, :room, room)}
   end
 
-  # @impl true
-  # def handle_info(:after_join, socket) do
-  #   message = %{
-  #     "content" => "User joined chat",
-  #     "timestamp" => DateTime.utc_now(),
-  #     "type" => "INFO",
-  #     "profilePicture" => -1,
-  #     "profilePictureSrc" => "op.png",
-  #     "owned" => true
-  #   }
+  @impl true
+  def handle_info(:after_join, socket) do
+    current_user = socket.assigns.current_user
+    room = socket.assigns.room
 
-  #   push(socket, "new_message", message)
-  #   {:noreply, socket}
-  # end
+    # Move this to helper
+    chat_profile_id =
+      :crypto.hash(:sha256, room.id <> current_user.userId)
+      |> Base.encode16()
 
-  # Channels can be used in a request/response fashion
-  # by sending replies to requests from the client
-  # @impl true
-  # def handle_in("ping", payload, socket) do
-  #   {:reply, {:ok, payload}, socket}
-  # end
+    {:ok, _} = Presence.track(socket, chat_profile_id, %{joined_at: DateTime.utc_now()})
+    push(socket, "presence_state", Presence.list(socket))
+    {:noreply, socket}
+  end
 
   # It is also common to receive messages from the client and
   # broadcast to everyone in the current topic (chat_room:lobby).
@@ -96,7 +91,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
         %{
           room: room,
           message: message,
-          owned: false,
+          owned: false
         },
         SpotChatWeb.MessageView,
         "message.json"
@@ -117,4 +112,9 @@ defmodule SpotChatWeb.ChatRoomChannel do
 
     push(socket, "message_created", rendered_message_push)
   end
+
+  # defp verify_user(%{"password" => password} = params) do
+  #   params
+  #   |> Argon2.check_pass(password)
+  # end
 end

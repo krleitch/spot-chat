@@ -50,7 +50,8 @@ defmodule SpotChat.MixProject do
       {:guardian_phoenix, "~> 2.0"},
       {:corsica, "~> 1.0"},
       {:paginator, "~> 1.1.0"},
-      {:geo_postgis, "~> 3.4"}
+      {:geo_postgis, "~> 3.4"},
+      {:argon2_elixir, "~> 3.0"}
     ]
   end
 

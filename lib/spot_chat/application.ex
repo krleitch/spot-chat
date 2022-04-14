@@ -14,6 +14,8 @@ defmodule SpotChat.Application do
       SpotChatWeb.Telemetry,
       # Start the PubSub system
       {Phoenix.PubSub, name: SpotChat.PubSub},
+      # Presence
+      SpotChatWeb.Presence,
       # Start the Endpoint (http/https)
       SpotChatWeb.Endpoint
       # Start a worker by calling: SpotChat.Worker.start_link(arg)
