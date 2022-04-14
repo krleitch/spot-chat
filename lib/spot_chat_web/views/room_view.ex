@@ -23,6 +23,7 @@ defmodule SpotChatWeb.RoomView do
       imageSrc: room.image_src,
       private: room.password_hash !== nil,
       point: room.point,
+      geolocation: room.geolocation,
       owned: room.user_id == user_id
     }
   end

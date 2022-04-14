@@ -12,6 +12,7 @@ defmodule SpotChat.Repo.Migrations.CreateRoom do
       add :image_src, :string
       add :password_hash, :string
       add :point, :geometry
+      add :geolocation, :string, default: ""
 
       timestamps()
     end
