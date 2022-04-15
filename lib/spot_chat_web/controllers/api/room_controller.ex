@@ -5,7 +5,7 @@ defmodule SpotChatWeb.RoomController do
 
   alias SpotChat.{Repo, Room, UserRoom}
 
-  def index(conn, _params) do
+  def index(conn, params) do
     current_user = conn.assigns.current_user
 
     query = from(r in Room, order_by: [asc: :id])
@@ -19,7 +19,12 @@ defmodule SpotChatWeb.RoomController do
 
     conn
     |> put_status(:ok)
-    |> render("index.json", %{page: page, user_id: current_user.userId})
+    |> render("index.json", %{
+      page: page,
+      user_id: current_user.userId,
+      lat: String.to_float(params["lat"]),
+      lng: String.to_float(params["lng"])
+    })
   end
 
   def create(conn, params) do
@@ -70,7 +75,7 @@ defmodule SpotChatWeb.RoomController do
 
         conn
         |> put_status(:created)
-        |> render("show.json", %{room: room, user_id: current_user.userId})
+        |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
 
       {:error, changeset} ->
         conn
@@ -91,12 +96,14 @@ defmodule SpotChatWeb.RoomController do
     current_user = conn.assigns.current_user
     room = Repo.get!(Room, params["id"])
     changeset = Room.changeset(room, params)
+    lat = params["lat"]
+    lng = params["lng"]
 
     case Repo.update(changeset) do
       {:ok, room} ->
         conn
         |> put_status(:ok)
-        |> render("show.json", %{room: room, user_id: current_user.userId})
+        |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
 
       {:error, changeset} ->
         conn
@@ -106,9 +113,13 @@ defmodule SpotChatWeb.RoomController do
     end
   end
 
-  def join(conn, %{"id" => room_id}) do
+  def join(conn, params) do
     current_user = conn.assigns.current_user
-    room = Repo.get(Room, room_id)
+    room = Repo.get(Room, params["id"])
+    lat = params["lat"]
+    lng = params["lng"]
+
+    # Check user location is valid for joining room
 
     changeset =
       UserRoom.changeset(
@@ -120,7 +131,7 @@ defmodule SpotChatWeb.RoomController do
       {:ok, _user_room} ->
         conn
         |> put_status(:created)
-        |> render("show.json", %{room: room, user_id: current_user.userId})
+        |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
 
       {:error, changeset} ->
         conn

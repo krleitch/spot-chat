@@ -105,7 +105,7 @@ defmodule SpotChatWeb.MessageView do
     |> elem(0)
   end
 
-  def render("message.json", %{message: %{room: room, message: message, owned: owned}}) do
+  def render("message.json", %{room: room, message: message, owned: owned}) do
     profile = SpotChatWeb.ProfileHelpers.getProfile(%{room: room, message: message})
 
     %{

@@ -11,6 +11,11 @@ defmodule SpotChatWeb.ChatRoomChannel do
     current_user = socket.assigns.current_user
     room = Repo.get!(Room, room_id)
 
+    if (Kernel.map_size(Presence.list(socket)) >= room.capacity) do
+      {:error, %{reason: "room is full"}}
+    end
+
+
     query =
       from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
 
@@ -23,10 +28,10 @@ defmodule SpotChatWeb.ChatRoomChannel do
 
     response = %{
       room:
-        Phoenix.View.render_one(
-          %{room: room, user_id: current_user.userId},
+        Phoenix.View.render(
           SpotChatWeb.RoomView,
-          "room.json"
+          "room.json",
+          %{room: room, user_id: current_user.userId}
         ),
       messages:
         Phoenix.View.render(
@@ -87,27 +92,27 @@ defmodule SpotChatWeb.ChatRoomChannel do
     room = Repo.get!(Room, message.room_id)
     # get user info, and choose what to include
     rendered_message_from =
-      Phoenix.View.render_one(
+      Phoenix.View.render(
+        SpotChatWeb.MessageView,
+        "message.json",
         %{
           room: room,
           message: message,
           owned: false
-        },
-        SpotChatWeb.MessageView,
-        "message.json"
+        }
       )
 
     broadcast_from!(socket, "message_created", rendered_message_from)
 
     rendered_message_push =
-      Phoenix.View.render_one(
+      Phoenix.View.render(
+        SpotChatWeb.MessageView,
+        "message.json",
         %{
           room: room,
           message: message,
           owned: true
-        },
-        SpotChatWeb.MessageView,
-        "message.json"
+        }
       )
 
     push(socket, "message_created", rendered_message_push)

@@ -13,6 +13,7 @@ defmodule SpotChat.Repo.Migrations.CreateRoom do
       add :password_hash, :string
       add :point, :geometry
       add :geolocation, :string, default: ""
+      add :capacity, :integer, default: 50
 
       timestamps()
     end

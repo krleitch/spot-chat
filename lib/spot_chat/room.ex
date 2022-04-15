@@ -13,6 +13,7 @@ defmodule SpotChat.Room do
     field :password, :string, virtual: true
     field :point, Geo.PostGIS.Geometry
     field :geolocation, :string
+    field :capacity, :integer
     has_many :message, SpotChat.Message
 
     timestamps(type: :utc_datetime)
@@ -21,7 +22,7 @@ defmodule SpotChat.Room do
   @doc false
   def changeset(room, attrs) do
     room
-    |> cast(attrs, [:user_id, :name, :description, :image_src, :point, :geolocation])
+    |> cast(attrs, [:user_id, :name, :description, :image_src, :point, :geolocation, :capacity])
     |> validate_required([:user_id, :name, :point])
     |> validate_length(:name, min: 3, max: 64)
     |> validate_length(:description, min: 0, max: 256)
