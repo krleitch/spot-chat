@@ -12,7 +12,7 @@ defmodule SpotChatWeb.GeoHelpers do
         :math.cos(fo_1) * :math.cos(fo_2) * :math.sin(diff_la / 2) * :math.sin(diff_la / 2)
 
     c = 2 * :math.atan2(:math.sqrt(a), :math.sqrt(1 - a))
-    radius * c
+    max(radius * c, 160) / 1609
   end
 
   defp degrees_to_radians(degrees) do

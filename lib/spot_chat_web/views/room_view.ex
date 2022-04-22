@@ -42,7 +42,8 @@ defmodule SpotChatWeb.RoomView do
       geolocation: room.geolocation,
       owned: room.user_id == user_id,
       numUsers: Kernel.map_size(SpotChatWeb.Presence.list("chat_room:" <> room.id)),
-      capacity: room.capacity
+      capacity: room.capacity,
+      insertedAt: room.inserted_at
     }
   end
 
@@ -57,7 +58,8 @@ defmodule SpotChatWeb.RoomView do
       geolocation: room.geolocation,
       owned: room.user_id == user_id,
       numUsers: Kernel.map_size(SpotChatWeb.Presence.list("chat_room:" <> room.id)),
-      capacity: room.capacity
+      capacity: room.capacity,
+      insertedAt: room.inserted_at
     }
   end
 end

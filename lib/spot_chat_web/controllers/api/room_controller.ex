@@ -5,8 +5,11 @@ defmodule SpotChatWeb.RoomController do
 
   alias SpotChat.{Repo, Room, UserRoom}
 
+  # All Rooms
   def index(conn, params) do
     current_user = conn.assigns.current_user
+    lat = params["lat"]
+    lng = params["lng"]
 
     query = from(r in Room, order_by: [asc: :id])
 
@@ -22,8 +25,37 @@ defmodule SpotChatWeb.RoomController do
     |> render("index.json", %{
       page: page,
       user_id: current_user.userId,
-      lat: String.to_float(params["lat"]),
-      lng: String.to_float(params["lng"])
+      lat: String.to_float(lat),
+      lng: String.to_float(lng)
+    })
+  end
+
+  # Rooms that the user has joined
+  def rooms(conn, params) do
+    current_user = conn.assigns.current_user
+    lat = params["lat"]
+    lng = params["lng"]
+
+    query =
+      from u in UserRoom,
+        join: room in assoc(u, :room),
+        where: u.user_id == ^current_user.userId,
+        select: room
+
+    page =
+      Repo.paginate(
+        query,
+        cursor_fields: [{:id, :asc}],
+        limit: 25
+      )
+
+    conn
+    |> put_status(:ok)
+    |> render("index.json", %{
+      page: page,
+      user_id: current_user.userId,
+      lat: String.to_float(lat),
+      lng: String.to_float(lng)
     })
   end
 
