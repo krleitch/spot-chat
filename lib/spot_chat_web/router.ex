@@ -37,6 +37,7 @@ defmodule SpotChatWeb.Router do
     end
 
     post "/rooms/:id/join", RoomController, :join
+    post "/rooms/:id/leave", RoomController, :leave
     get "/rooms/user", RoomController, :rooms
   end
 

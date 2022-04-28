@@ -24,6 +24,16 @@ defmodule SpotChatWeb.RoomView do
     }
   end
 
+  def render("show.json", %{room: room, user_id: user_id}) do
+    %{
+      chatRoom:
+        render(
+          "room.json",
+          %{room: room, user_id: user_id}
+        )
+    }
+  end
+
   # With distance data
   def render("room.json", %{room: room, user_id: user_id, lat: lat, lng: lng}) do
     %{

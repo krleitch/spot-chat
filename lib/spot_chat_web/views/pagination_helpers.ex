@@ -4,7 +4,7 @@ defmodule SpotChatWeb.PaginationHelpers do
       after: page.metadata.after,
       before: page.metadata.before,
       limit: page.metadata.limit,
-      total_count: page.metadata.total_count
+      totalCount: page.metadata.total_count
     }
   end
 end

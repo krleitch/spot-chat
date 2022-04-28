@@ -172,4 +172,24 @@ defmodule SpotChatWeb.RoomController do
         |> render("error.json", changeset: changeset)
     end
   end
+
+  def leave(conn, params) do
+    current_user = conn.assigns.current_user
+    room = Repo.get(Room, params["id"])
+
+    user_room = Repo.get_by(UserRoom, room_id: room.id, user_id: current_user.userId)
+
+    case Repo.delete(user_room) do
+      {:ok, _user_room} ->
+        conn
+        |> put_status(:created)
+        |> render("show.json", %{room: room, user_id: current_user.userId})
+
+      {:error, changeset} ->
+        conn
+        |> put_status(:unprocessable_entity)
+        |> put_view(SpotChatWeb.ChangesetView)
+        |> render("error.json", changeset: changeset)
+    end
+  end
 end
