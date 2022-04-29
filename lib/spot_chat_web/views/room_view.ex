@@ -36,11 +36,15 @@ defmodule SpotChatWeb.RoomView do
 
   # With distance data
   def render("room.json", %{room: room, user_id: user_id, lat: lat, lng: lng}) do
+    defaultImage = SpotChatWeb.ChatHelpers.getDefaultImage(%{room: room})
+
     %{
       id: room.id,
       name: room.name,
       description: room.description,
       imageSrc: room.image_src,
+      defaultImageNum: defaultImage.default_image_num,
+      defaultImageSrc: defaultImage.default_image_src,
       private: room.password_hash !== nil,
       distance:
         SpotChatWeb.GeoHelpers.distance_between(
@@ -59,11 +63,15 @@ defmodule SpotChatWeb.RoomView do
 
   # Normal room
   def render("room.json", %{room: room, user_id: user_id}) do
+    defaultImage = SpotChatWeb.ChatHelpers.getDefaultImage(%{room: room})
+
     %{
       id: room.id,
       name: room.name,
       description: room.description,
       imageSrc: room.image_src,
+      defaultImageNum: defaultImage.default_image_num,
+      defaultImageSrc: defaultImage.default_image_src,
       private: room.password_hash !== nil,
       geolocation: room.geolocation,
       owned: room.user_id == user_id,

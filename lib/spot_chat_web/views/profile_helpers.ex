@@ -1,14 +1,17 @@
 defmodule SpotChatWeb.ProfileHelpers do
   def getProfile(%{room: room, message: message}) do
-    upperbound = 70
-    lowerbound = 0
+    upperbound_src = 70
+    lowerbound_src = 0
+    upperbound_num = 25
+    lowerbound_num = 0
 
     hash =
       :crypto.hash(:sha256, room.id <> message.user_id)
       |> Base.encode16()
 
     {int_hash, _} = Integer.parse(hash, 16)
-    index = rem(int_hash, upperbound - lowerbound) + lowerbound
+    index_num = rem(int_hash, upperbound_num - lowerbound_num) + lowerbound_num
+    index_src = rem(int_hash, upperbound_src - lowerbound_src) + lowerbound_src
     room_user_id = room.user_id
 
     case message.user_id do
@@ -20,8 +23,8 @@ defmodule SpotChatWeb.ProfileHelpers do
 
       _ ->
         %{
-          profile_picture_num: rem(index, 25),
-          profile_picture_src: pictures(index)
+          profile_picture_num: index_num,
+          profile_picture_src: pictures(index_src)
         }
     end
   end
