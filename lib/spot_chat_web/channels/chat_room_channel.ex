@@ -11,10 +11,15 @@ defmodule SpotChatWeb.ChatRoomChannel do
     current_user = socket.assigns.current_user
     room = Repo.get!(Room, room_id)
 
-    if (Kernel.map_size(Presence.list(socket)) >= room.capacity) do
-      {:error, %{reason: "room is full"}}
+    # the room has expired
+    if room.expired_at do
+      {:error, %{reason: "room has expired"}}
     end
 
+    # The room has too many users
+    if Kernel.map_size(Presence.list(socket)) >= room.capacity do
+      {:error, %{reason: "room is full"}}
+    end
 
     query =
       from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
@@ -65,8 +70,45 @@ defmodule SpotChatWeb.ChatRoomChannel do
   # broadcast to everyone in the current topic (chat_room:lobby).
   @impl true
   def handle_in("new_message", payload, socket) do
+    room = socket.assigns.room
+
+    # check if room has expired first
+    if room.expired_at do
+      {:error, %{reason: "room has expired"}}
+    end
+
+    # check if we need to expire the room
+    query =
+      from(m in Message,
+        where: m.room_id == ^room.id,
+        order_by: [desc: m.inserted_at, desc: m.id],
+        limit: 1
+      )
+
+    last_message = Repo.all(query)
+
+    last_active_time =
+      case last_message do
+        [] -> room.inserted_at
+        [m] -> m.inserted_at
+      end
+
+    # {:ok, active_date, 0} = DateTime.from_iso8601(last_active_time.to_string())
+    current_date = DateTime.utc_now()
+    time_diff = DateTime.diff(current_date, last_active_time)
+
+    # if the room has expired update the record
+    if time_diff >= 3600 do
+      Repo.get_by(Room, id: room.id)
+      |> Ecto.Changeset.change(%{expired_at: DateTime.utc_now()})
+      |> Repo.update()
+
+      {:error, %{reason: "room has expired"}}
+    end
+
+    # create the new message and broadcast it
     changeset =
-      socket.assigns.room
+      room
       |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
       |> Message.changeset(payload)
 

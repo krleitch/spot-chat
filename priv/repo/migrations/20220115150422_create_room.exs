@@ -14,6 +14,7 @@ defmodule SpotChat.Repo.Migrations.CreateRoom do
       add :point, :geometry
       add :geolocation, :string, default: ""
       add :capacity, :integer, default: 50
+      add :expired_at, :utc_datetime
 
       timestamps()
     end
