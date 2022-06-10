@@ -11,7 +11,7 @@ defmodule SpotChatWeb.RoomController do
     lat = params["lat"]
     lng = params["lng"]
 
-    query = from(r in Room, order_by: [asc: :id])
+    query = from(r in Room, where: is_nil(r.expired_at), order_by: [asc: :id])
 
     page =
       Repo.paginate(
@@ -39,7 +39,7 @@ defmodule SpotChatWeb.RoomController do
     query =
       from u in UserRoom,
         join: room in assoc(u, :room),
-        where: u.user_id == ^current_user.userId,
+        where: u.user_id == ^current_user.userId and is_nil(room.expired_at),
         select: room
 
     page =
@@ -127,6 +127,12 @@ defmodule SpotChatWeb.RoomController do
   def update(conn, params) do
     current_user = conn.assigns.current_user
     room = Repo.get!(Room, params["id"])
+
+    # check if room has expired first
+    if room.expired_at do
+      {:error, %{reason: "room has expired"}}
+    end
+
     changeset = Room.changeset(room, params)
     lat = params["lat"]
     lng = params["lng"]
@@ -148,6 +154,12 @@ defmodule SpotChatWeb.RoomController do
   def join(conn, params) do
     current_user = conn.assigns.current_user
     room = Repo.get(Room, params["id"])
+
+    # check if room has expired first
+    if room.expired_at do
+      {:error, %{reason: "room has expired"}}
+    end
+
     lat = params["lat"]
     lng = params["lng"]
 

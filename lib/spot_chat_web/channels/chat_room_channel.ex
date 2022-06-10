@@ -93,35 +93,39 @@ defmodule SpotChatWeb.ChatRoomChannel do
         [m] -> m.inserted_at
       end
 
-    # {:ok, active_date, 0} = DateTime.from_iso8601(last_active_time.to_string())
     current_date = DateTime.utc_now()
     time_diff = DateTime.diff(current_date, last_active_time)
 
     # if the room has expired update the record
     if time_diff >= 3600 do
-      Repo.get_by(Room, id: room.id)
-      |> Ecto.Changeset.change(%{expired_at: DateTime.utc_now()})
-      |> Repo.update()
-
-      {:error, %{reason: "room has expired"}}
     end
 
-    # create the new message and broadcast it
-    changeset =
-      room
-      |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
-      |> Message.changeset(payload)
+    case time_diff do
+      n when n >= 3600 ->
+        Repo.get_by(Room, id: room.id)
+        |> Ecto.Changeset.change(%{expired_at: DateTime.truncate(DateTime.utc_now(), :second)})
+        |> Repo.update()
 
-    case Repo.insert(changeset) do
-      {:ok, message} ->
-        broadcast_message(socket, message)
-        {:reply, :ok, socket}
+        {:error, %{reason: "room has expired"}}
 
-      {:error, changeset} ->
-        {:reply,
-         {:error,
-          Phoenix.View.render(SpotChatWeb.ChangesetView, "error.json", changeset: changeset)},
-         socket}
+      _ ->
+        # create the new message and broadcast it
+        changeset =
+          room
+          |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
+          |> Message.changeset(payload)
+
+        case Repo.insert(changeset) do
+          {:ok, message} ->
+            broadcast_message(socket, message)
+            {:reply, :ok, socket}
+
+          {:error, changeset} ->
+            {:reply,
+             {:error,
+              Phoenix.View.render(SpotChatWeb.ChangesetView, "error.json", changeset: changeset)},
+             socket}
+        end
     end
   end
 
