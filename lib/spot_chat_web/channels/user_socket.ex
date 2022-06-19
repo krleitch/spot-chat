@@ -44,6 +44,7 @@ defmodule SpotChatWeb.UserSocket do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
         response = Poison.decode!(body)
         user = for {key, val} <- response["user"], into: %{}, do: {String.to_atom(key), val}
+        assign(socket, :token, token)
         {:ok, assign(socket, :current_user, user)}
       {:ok, %HTTPoison.Response{status_code: 401}} ->
         :error

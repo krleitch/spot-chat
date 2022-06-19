@@ -7,13 +7,7 @@ defmodule SpotChatWeb.FriendMessageView do
     DateTime.diff(low, high) >= min
   end
 
-  defp getChatProfileId(%{friend_room: friend_room, message: message}) do
-    :crypto.hash(:sha256, friend_room.id <> message.user_id)
-    |> Base.encode16()
-  end
-
   def render("index.json", %{
-        friend_room: friend_room,
         messages: messages,
         user_id: user_id,
         pagination: pagination
@@ -21,10 +15,9 @@ defmodule SpotChatWeb.FriendMessageView do
     %{
       messages:
         Phoenix.View.render(
-          SpotChatWeb.MessageView,
+          SpotChatWeb.FriendMessageView,
           "block.json",
           %{
-            friend_room: friend_room,
             messages: messages,
             user_id: user_id
           }
@@ -34,7 +27,6 @@ defmodule SpotChatWeb.FriendMessageView do
   end
 
   def render("block.json", %{
-        friend_room: friend_room,
         messages: messages,
         user_id: user_id
       }) do
@@ -46,15 +38,11 @@ defmodule SpotChatWeb.FriendMessageView do
       case acc do
         {[], nil} ->
           # add the first message block
-          profile = SpotChatWeb.ProfileHelpers.getProfile(%{friend_room: friend_room, message: message})
 
           {[
              %{
                insertedAt: message.inserted_at,
-               profilePictureSrc: profile.profile_picture_src,
-               profilePictureNum: profile.profile_picture_num,
                owned: message.user_id == user_id,
-               chatProfileId: getChatProfileId(%{friend_room: friend_room, message: message}),
                showDate: true,
                messages: [%{id: message.id, text: message.text, insertedAt: message.inserted_at}]
              }
@@ -63,17 +51,14 @@ defmodule SpotChatWeb.FriendMessageView do
         # otherwise get the last block and see if we add to it or make a new block
         {[block | list] = blocks, last_message} ->
           show_date = too_long(last_message.inserted_at, message.inserted_at)
-          if (message.user_id !== last_message.user_id || show_date) do
+
+          if message.user_id !== last_message.user_id || show_date do
             # create a new block
-            profile = SpotChatWeb.ProfileHelpers.getProfile(%{friend_room: friend_room, message: message})
 
             {[
                %{
                  insertedAt: message.inserted_at,
-                 profilePictureSrc: profile.profile_picture_src,
-                 profilePictureNum: profile.profile_picture_num,
                  owned: message.user_id == user_id,
-                 chatProfileId: getChatProfileId(%{friend_room: friend_room, message: message}),
                  showDate: show_date,
                  messages: [
                    %{id: message.id, text: message.text, insertedAt: message.inserted_at}
@@ -87,10 +72,7 @@ defmodule SpotChatWeb.FriendMessageView do
                %{
                  # its the first message inserted at that the block has
                  insertedAt: message.inserted_at,
-                 profilePictureSrc: block.profilePictureSrc,
-                 profilePictureNum: block.profilePictureNum,
                  owned: block.owned,
-                 chatProfileId: block.chatProfileId,
                  showDate: block.showDate,
                  messages: [
                    %{id: message.id, text: message.text, insertedAt: message.inserted_at}
@@ -105,16 +87,11 @@ defmodule SpotChatWeb.FriendMessageView do
     |> elem(0)
   end
 
-  def render("message.json", %{friend_room: friend_room, message: message, owned: owned}) do
-    profile = SpotChatWeb.ProfileHelpers.getProfile(%{friend_room: friend_room, message: message})
-
+  def render("message.json", %{message: message, owned: owned}) do
     %{
       id: message.id,
       insertedAt: message.inserted_at,
       text: message.text,
-      chatProfileId: getChatProfileId(%{friend_room: friend_room, message: message}),
-      profilePictureNum: profile.profile_picture_num,
-      profilePictureSrc: profile.profile_picture_src,
       owned: owned
     }
   end

@@ -3,26 +3,68 @@ defmodule SpotChatWeb.ChatFriendChannel do
 
   import Ecto.Query
 
-  alias SpotChat.{Repo, Room, Message}
+  alias SpotChat.{Repo, FriendRoom, FriendMessage}
   alias SpotChatWeb.Presence
 
   @impl true
-  def join("chat_room:" <> room_id, _payload, socket) do
+  def join("chat_friend:" <> friend_id, _payload, socket) do
+    # the friend_id is the relationshipm we need to actually get the friend
+    url = "http://localhost:3000/chat/friend/" <> friend_id
+
+    headers = [
+      Authorization: "Bearer #{socket.assigns.token}",
+      Accept: "Application/json; Charset=utf-8"
+    ]
+
+    friend =
+      case HTTPoison.get(url, headers) do
+        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+          response = Poison.decode!(body)
+          response["friend"]
+
+        {:ok, %HTTPoison.Response{status_code: 404}} ->
+          {:error, %{reason: "friend does not exist"}}
+
+        {:error, %HTTPoison.Error{reason: _reason}} ->
+          {:error, %{reason: "friend does not exist"}}
+      end
+
     current_user = socket.assigns.current_user
-    room = Repo.get!(Room, room_id)
 
-    # the room has expired
-    if room.expired_at do
-      {:error, %{reason: "room has expired"}}
-    end
+    room_query =
+      from(r in FriendRoom,
+        where:
+          (r.user_id == ^current_user.userId and r.friend_id == ^friend.userId) or
+            (r.userId == ^friend.userId and r.friend_id == ^current_user.userId)
+      )
 
-    # The room has too many users
-    if Kernel.map_size(Presence.list(socket)) >= room.capacity do
-      {:error, %{reason: "room is full"}}
+    friend_room = Repo.one!(room_query)
+
+    # these users have not chatted yet
+    if is_nil(friend_room) do
+      changeset =
+        FriendRoom.changeset(
+          %FriendRoom{},
+          %{
+            user_id: current_user.userId,
+            friend_id: friend.userId
+          }
+        )
+
+      case Repo.insert(changeset) do
+        {:ok, room} ->
+          ^friend_room = room
+
+        {:error, _changeset} ->
+          {:error, %{reason: "friend does not exist"}}
+      end
     end
 
     query =
-      from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
+      from(m in FriendMessage,
+        where: m.friend_room_id == ^friend_room.id,
+        order_by: [desc: m.inserted_at, desc: m.id]
+      )
 
     page =
       Repo.paginate(
@@ -32,36 +74,31 @@ defmodule SpotChatWeb.ChatFriendChannel do
       )
 
     response = %{
-      room:
-        Phoenix.View.render(
-          SpotChatWeb.RoomView,
-          "room.json",
-          %{room: room, user_id: current_user.userId}
-        ),
       messages:
         Phoenix.View.render(
           SpotChatWeb.MessageView,
           "block.json",
-          %{room: room, messages: page.entries, user_id: current_user.userId}
+          %{messages: page.entries, user_id: current_user.userId}
         ),
       pagination: SpotChatWeb.PaginationHelpers.pagination(page)
     }
 
     send(self(), :after_join)
-    {:ok, response, assign(socket, :room, room)}
+    assign(socket, :friend_user, friend)
+    {:ok, response, assign(socket, :friend_room, friend_room)}
   end
 
   @impl true
   def handle_info(:after_join, socket) do
     current_user = socket.assigns.current_user
-    room = socket.assigns.room
+    friend_room = socket.assigns.friend_room
 
-    # Move this to helper
-    chat_profile_id =
-      :crypto.hash(:sha256, room.id <> current_user.userId)
-      |> Base.encode16()
+    if current_user.userId == friend_room.user_id do
+    {:ok, _} = Presence.track(socket, "user_1", %{joined_at: DateTime.utc_now()})
+    else
+    {:ok, _} = Presence.track(socket, "user_2", %{joined_at: DateTime.utc_now()})
+    end
 
-    {:ok, _} = Presence.track(socket, chat_profile_id, %{joined_at: DateTime.utc_now()})
     push(socket, "presence_state", Presence.list(socket))
     {:noreply, socket}
   end
@@ -70,62 +107,24 @@ defmodule SpotChatWeb.ChatFriendChannel do
   # broadcast to everyone in the current topic (chat_room:lobby).
   @impl true
   def handle_in("new_message", payload, socket) do
-    room = socket.assigns.room
+    friend_room = socket.assigns.friend_room
 
-    # check if room has expired first
-    if room.expired_at do
-      {:error, %{reason: "room has expired"}}
-    end
+    # create the new message and broadcast it
+    changeset =
+      friend_room
+      |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
+      |> FriendMessage.changeset(payload)
 
-    # check if we need to expire the room
-    query =
-      from(m in Message,
-        where: m.room_id == ^room.id,
-        order_by: [desc: m.inserted_at, desc: m.id],
-        limit: 1
-      )
+    case Repo.insert(changeset) do
+      {:ok, message} ->
+        broadcast_message(socket, message)
+        {:reply, :ok, socket}
 
-    last_message = Repo.all(query)
-
-    last_active_time =
-      case last_message do
-        [] -> room.inserted_at
-        [m] -> m.inserted_at
-      end
-
-    current_date = DateTime.utc_now()
-    time_diff = DateTime.diff(current_date, last_active_time)
-
-    # if the room has expired update the record
-    if time_diff >= 3600 do
-    end
-
-    case time_diff do
-      n when n >= 3600 ->
-        Repo.get_by(Room, id: room.id)
-        |> Ecto.Changeset.change(%{expired_at: DateTime.truncate(DateTime.utc_now(), :second)})
-        |> Repo.update()
-
-        {:error, %{reason: "room has expired"}}
-
-      _ ->
-        # create the new message and broadcast it
-        changeset =
-          room
-          |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
-          |> Message.changeset(payload)
-
-        case Repo.insert(changeset) do
-          {:ok, message} ->
-            broadcast_message(socket, message)
-            {:reply, :ok, socket}
-
-          {:error, changeset} ->
-            {:reply,
-             {:error,
-              Phoenix.View.render(SpotChatWeb.ChangesetView, "error.json", changeset: changeset)},
-             socket}
-        end
+      {:error, changeset} ->
+        {:reply,
+         {:error,
+          Phoenix.View.render(SpotChatWeb.ChangesetView, "error.json", changeset: changeset)},
+         socket}
     end
   end
 
@@ -135,14 +134,12 @@ defmodule SpotChatWeb.ChatFriendChannel do
   end
 
   defp broadcast_message(socket, message) do
-    room = Repo.get!(Room, message.room_id)
     # get user info, and choose what to include
     rendered_message_from =
       Phoenix.View.render(
         SpotChatWeb.MessageView,
         "message.json",
         %{
-          room: room,
           message: message,
           owned: false
         }
@@ -155,7 +152,6 @@ defmodule SpotChatWeb.ChatFriendChannel do
         SpotChatWeb.MessageView,
         "message.json",
         %{
-          room: room,
           message: message,
           owned: true
         }
