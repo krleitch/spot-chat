@@ -3,6 +3,7 @@ defmodule SpotChatWeb.UserSocket do
   use HTTPoison.Base
 
   channel "chat_room:*", SpotChatWeb.ChatRoomChannel
+  channel "chat_friend:*", SpotChatWeb.ChatFriendChannel
 
   # A Socket handler
   #
