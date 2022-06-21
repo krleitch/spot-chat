@@ -7,7 +7,7 @@ defmodule SpotChat.FriendMessage do
   schema "friend_message" do
     field :text, :string
     field :user_id, Ecto.UUID
-    belongs_to :friend_room_id, SpotChat.FriendRoom, type: Ecto.UUID
+    belongs_to :friend_room, SpotChat.FriendRoom, type: Ecto.UUID
 
     timestamps(type: :utc_datetime)
   end

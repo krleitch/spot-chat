@@ -34,11 +34,11 @@ defmodule SpotChatWeb.ChatFriendChannel do
     room_query =
       from(r in FriendRoom,
         where:
-          (r.user_id == ^current_user.userId and r.friend_id == ^friend.userId) or
-            (r.userId == ^friend.userId and r.friend_id == ^current_user.userId)
+          (r.user_id == ^current_user.userId and r.friend_id == ^friend["userId"]) or
+            (r.user_id == ^friend["userId"] and r.friend_id == ^current_user.userId)
       )
 
-    friend_room = Repo.one!(room_query)
+    friend_room = Repo.one(room_query)
 
     # these users have not chatted yet
     if is_nil(friend_room) do
@@ -47,7 +47,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
           %FriendRoom{},
           %{
             user_id: current_user.userId,
-            friend_id: friend.userId
+            friend_id: friend["userId"]
           }
         )
 
@@ -76,7 +76,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
     response = %{
       messages:
         Phoenix.View.render(
-          SpotChatWeb.MessageView,
+          SpotChatWeb.FriendMessageView,
           "block.json",
           %{messages: page.entries, user_id: current_user.userId}
         ),
