@@ -112,7 +112,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
     # create the new message and broadcast it
     changeset =
       friend_room
-      |> Ecto.build_assoc(:message, user_id: socket.assigns.current_user.userId)
+      |> Ecto.build_assoc(:friend_message, user_id: socket.assigns.current_user.userId)
       |> FriendMessage.changeset(payload)
 
     case Repo.insert(changeset) do
@@ -137,7 +137,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
     # get user info, and choose what to include
     rendered_message_from =
       Phoenix.View.render(
-        SpotChatWeb.MessageView,
+        SpotChatWeb.FriendMessageView,
         "message.json",
         %{
           message: message,
@@ -149,7 +149,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
 
     rendered_message_push =
       Phoenix.View.render(
-        SpotChatWeb.MessageView,
+        SpotChatWeb.FriendMessageView,
         "message.json",
         %{
           message: message,

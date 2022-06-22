@@ -41,7 +41,7 @@ defmodule SpotChatWeb.Router do
     get "/rooms/user", RoomController, :rooms
 
     # Friend Rooms
-    resources "/friend/messages", FriendMessageController, only: [:index]
+    get "/friends/:id/messages", FriendMessageController, :index
 
   end
 
