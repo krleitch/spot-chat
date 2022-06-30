@@ -74,6 +74,7 @@ defmodule SpotChatWeb.ChatFriendChannel do
       )
 
     response = %{
+      friendRoomId: friend_room.id,
       messages:
         Phoenix.View.render(
           SpotChatWeb.FriendMessageView,

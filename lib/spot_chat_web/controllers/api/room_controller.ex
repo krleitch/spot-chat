@@ -10,13 +10,15 @@ defmodule SpotChatWeb.RoomController do
     current_user = conn.assigns.current_user
     lat = params["lat"]
     lng = params["lng"]
+    aft = params["after"]
 
-    query = from(r in Room, where: is_nil(r.expired_at), order_by: [asc: :id])
+    query = from(r in Room, where: is_nil(r.expired_at), order_by: [desc: :inserted_at])
 
     page =
       Repo.paginate(
         query,
-        cursor_fields: [{:id, :asc}],
+        after: aft,
+        cursor_fields: [{:inserted_at, :desc}],
         limit: 25
       )
 
@@ -40,13 +42,14 @@ defmodule SpotChatWeb.RoomController do
       from u in UserRoom,
         join: room in assoc(u, :room),
         where: u.user_id == ^current_user.userId and is_nil(room.expired_at),
-        select: room
+        select: room,
+        order_by: [desc: :inserted_at]
 
     page =
       Repo.paginate(
         query,
         cursor_fields: [{:id, :asc}],
-        limit: 25
+        limit: 100
       )
 
     conn
