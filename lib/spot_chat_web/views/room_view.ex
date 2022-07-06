@@ -1,6 +1,10 @@
 defmodule SpotChatWeb.RoomView do
   use SpotChatWeb, :view
 
+  def render("error.json", %{message: message}) do
+    %{message: message}
+  end
+
   def render("index.json", %{page: page, user_id: user_id, lat: lat, lng: lng}) do
     %{
       chatRooms:

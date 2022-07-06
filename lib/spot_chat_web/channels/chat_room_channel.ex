@@ -7,7 +7,7 @@ defmodule SpotChatWeb.ChatRoomChannel do
   alias SpotChatWeb.Presence
 
   @impl true
-  def join("chat_room:" <> room_id, _payload, socket) do
+  def join("chat_room:" <> room_id, payload, socket) do
     current_user = socket.assigns.current_user
     room = Repo.get!(Room, room_id)
 
@@ -21,34 +21,41 @@ defmodule SpotChatWeb.ChatRoomChannel do
       {:error, %{reason: "room is full"}}
     end
 
-    query =
-      from(m in Message, where: m.room_id == ^room.id, order_by: [desc: m.inserted_at, desc: m.id])
+    if current_user.role == "GUEST" do
+      {:error, %{reason: "user is guest"}}
+    else
+      query =
+        from(m in Message,
+          where: m.room_id == ^room.id,
+          order_by: [desc: m.inserted_at, desc: m.id]
+        )
 
-    page =
-      Repo.paginate(
-        query,
-        cursor_fields: [{:inserted_at, :desc}, {:id, :desc}],
-        limit: 25
-      )
+      page =
+        Repo.paginate(
+          query,
+          cursor_fields: [{:inserted_at, :desc}, {:id, :desc}],
+          limit: 25
+        )
 
-    response = %{
-      room:
-        Phoenix.View.render(
-          SpotChatWeb.RoomView,
-          "room.json",
-          %{room: room, user_id: current_user.userId}
-        ),
-      messages:
-        Phoenix.View.render(
-          SpotChatWeb.MessageView,
-          "block.json",
-          %{room: room, messages: page.entries, user_id: current_user.userId}
-        ),
-      pagination: SpotChatWeb.PaginationHelpers.pagination(page)
-    }
+      response = %{
+        room:
+          Phoenix.View.render(
+            SpotChatWeb.RoomView,
+            "room.json",
+            %{room: room, user_id: current_user.userId}
+          ),
+        messages:
+          Phoenix.View.render(
+            SpotChatWeb.MessageView,
+            "block.json",
+            %{room: room, messages: page.entries, user_id: current_user.userId}
+          ),
+        pagination: SpotChatWeb.PaginationHelpers.pagination(page)
+      }
 
-    send(self(), :after_join)
-    {:ok, response, assign(socket, :room, room)}
+      send(self(), :after_join)
+      {:ok, response, assign(socket, :room, room)}
+    end
   end
 
   @impl true

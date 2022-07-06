@@ -3,7 +3,7 @@ defmodule SpotChatWeb.RoomController do
 
   import Ecto.Query
 
-  alias SpotChat.{Repo, Room, UserRoom}
+  alias SpotChat.{Repo, Room, UserRoom, SpotError}
 
   # All Rooms
   def index(conn, params) do
@@ -65,58 +65,67 @@ defmodule SpotChatWeb.RoomController do
   def create(conn, params) do
     current_user = conn.assigns.current_user
 
-    lat = params["lat"]
-    lng = params["lng"]
-    token = get_token(conn)
-    url = "http://localhost:3000/chat/geolocation?lng=#{lng}&lat=#{lat}"
-    headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
+    if current_user.role == "GUEST" do
+      conn
+      |> put_status(500)
+      |> put_view(SpotChatWeb.SpotErrorView)
+      |> render("error.json", %{
+        spot_error: %SpotError{name: "GuestError", message: "User is guest"}
+      })
+    else
+      lat = params["lat"]
+      lng = params["lng"]
+      token = get_token(conn)
+      url = "http://localhost:3000/chat/geolocation?lng=#{lng}&lat=#{lat}"
+      headers = [Authorization: "Bearer #{token}", Accept: "Application/json; Charset=utf-8"]
 
-    geolocation =
-      case HTTPoison.get(url, headers) do
-        {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-          response = Poison.decode!(body)
-          response["geolocation"]
+      geolocation =
+        case HTTPoison.get(url, headers) do
+          {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
+            response = Poison.decode!(body)
+            response["geolocation"]
 
-        {:ok, %HTTPoison.Response{status_code: 401}} ->
-          ""
+          {:ok, %HTTPoison.Response{status_code: 401}} ->
+            ""
 
-        {:error, %HTTPoison.Error{reason: _reason}} ->
-          ""
+          {:error, %HTTPoison.Error{reason: _reason}} ->
+            ""
+        end
+
+      changeset =
+        Room.registration_changeset(
+          %Room{},
+          %{
+            user_id: current_user.userId,
+            name: params["name"],
+            description: params["description"],
+            image_src: params["imageSrc"],
+            password: params["password"],
+            geolocation: geolocation,
+            point: %Geo.Point{coordinates: {lng, lat}}
+          }
+        )
+
+      case Repo.insert(changeset) do
+        {:ok, room} ->
+          assoc_changeset =
+            UserRoom.changeset(
+              %UserRoom{},
+              %{user_id: current_user.userId, room_id: room.id}
+            )
+
+          Repo.insert(assoc_changeset)
+
+          conn
+          |> put_status(:created)
+          |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
+
+        {:error, changeset} ->
+          conn
+          |> put_status(:unprocessable_entity)
+          |> put_view(SpotChatWeb.ChangesetView)
+          |> render("error.json", changeset: changeset)
       end
-
-    changeset =
-      Room.registration_changeset(
-        %Room{},
-        %{
-          user_id: current_user.userId,
-          name: params["name"],
-          description: params["description"],
-          image_src: params["imageSrc"],
-          password: params["password"],
-          geolocation: geolocation,
-          point: %Geo.Point{coordinates: {lng, lat}}
-        }
-      )
-
-    case Repo.insert(changeset) do
-      {:ok, room} ->
-        assoc_changeset =
-          UserRoom.changeset(
-            %UserRoom{},
-            %{user_id: current_user.userId, room_id: room.id}
-          )
-
-        Repo.insert(assoc_changeset)
-
-        conn
-        |> put_status(:created)
-        |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
-
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> put_view(SpotChatWeb.ChangesetView)
-        |> render("error.json", changeset: changeset)
     end
   end
 
@@ -132,9 +141,9 @@ defmodule SpotChatWeb.RoomController do
     room = Repo.get!(Room, params["id"])
 
     # check if room has expired first
-    if room.expired_at do
-      {:error, %{reason: "room has expired"}}
-    end
+    # if room.expired_at do
+    #   {:error, %{reason: "room has expired"}}
+    # end
 
     changeset = Room.changeset(room, params)
     lat = params["lat"]
@@ -159,32 +168,73 @@ defmodule SpotChatWeb.RoomController do
     room = Repo.get(Room, params["id"])
 
     # check if room has expired first
-    if room.expired_at do
-      {:error, %{reason: "room has expired"}}
-    end
+    # if room.expired_at do
+    #   {:error, %{reason: "room has expired"}}
+    # end
 
     lat = params["lat"]
     lng = params["lng"]
 
-    # Check user location is valid for joining room
+    # TODO: Check user location is valid for joining room
 
-    changeset =
-      UserRoom.changeset(
-        %UserRoom{},
-        %{room_id: room.id, user_id: current_user.userId}
-      )
+    # TODO: password check is wrong, can still just make a connection for the scoket...
 
-    case Repo.insert(changeset) do
-      {:ok, _user_room} ->
-        conn
-        |> put_status(:created)
-        |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
+    if current_user.role == "GUEST" do
+      conn
+      |> put_status(500)
+      |> put_view(SpotChatWeb.SpotErrorView)
+      |> render("error.json", %{
+        spot_error: %SpotError{name: "GuestError", message: "User is guest"}
+      })
+    else
+      if is_nil(room.password_hash) do
+        changeset =
+          UserRoom.changeset(
+            %UserRoom{},
+            %{room_id: room.id, user_id: current_user.userId}
+          )
 
-      {:error, changeset} ->
-        conn
-        |> put_status(:unprocessable_entity)
-        |> put_view(SpotChatWeb.ChangesetView)
-        |> render("error.json", changeset: changeset)
+        case Repo.insert(changeset) do
+          {:ok, _user_room} ->
+            conn
+            |> put_status(:created)
+            |> render("show.json", %{room: room, user_id: current_user.userId, lat: lat, lng: lng})
+
+          {:error, changeset} ->
+            conn
+            |> put_status(:unprocessable_entity)
+            |> put_view(SpotChatWeb.ChangesetView)
+            |> render("error.json", changeset: changeset)
+        end
+      else
+        if Argon2.verify_pass(params["password"], room.password_hash) do
+          changeset =
+            UserRoom.changeset(
+              %UserRoom{},
+              %{room_id: room.id, user_id: current_user.userId}
+            )
+
+          case Repo.insert(changeset) do
+            {:ok, _user_room} ->
+              conn
+              |> put_status(:created)
+              |> render("show.json", %{
+                room: room,
+                user_id: current_user.userId,
+                lat: lat,
+                lng: lng
+              })
+
+            {:error, changeset} ->
+              conn
+              |> put_status(:unprocessable_entity)
+              |> put_view(SpotChatWeb.ChangesetView)
+              |> render("error.json", changeset: changeset)
+          end
+        else
+          {:error, %{reason: "password invalid"}}
+        end
+      end
     end
   end
 
