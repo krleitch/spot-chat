@@ -13,8 +13,8 @@ import Config
 
 config :spot_chat, SpotChat.Endpoint,
   check_origin: ["https://spottables.com"],
-  http: [port: {:system , "PORT"}],
-  url: [host: "spottables.com", port 80]
+  http: [port: {:system, "PORT"}],
+  url: [host: "spottables.com", port: 80]
 
 # Do not print debug messages in production
 config :logger, level: :info
